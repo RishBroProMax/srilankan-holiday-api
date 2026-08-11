@@ -137,6 +137,7 @@ main();
 | `isWeekend(dateStr)` | `string ("YYYY-MM-DD")` | `boolean` | Returns true if date is Saturday or Sunday |
 | `countWorkingDays(start, end)` | `startDate, endDate` | `number` | Count business working days between two dates |
 | `getWorkableDaysInRange(start, end)`| `startDate, endDate` | `string[]` | Get array of working date strings (YYYY-MM-DD) |
+| `analyzeDateRange(from, to, options?)` | `from, to, options` | `Object` | **Date Intelligence**: `{ totalDays, weekends, holidays, businessDays, workingDaysList, holidaysList }` |
 | `getHolidaysInRange(start, end)` | `startDate, endDate` | `Holiday[]` | Get holidays falling within a date range |
 | `getLongWeekends(year?)` | `number \| string` | `LongWeekend[]` | Detect long weekend holiday opportunities |
 | `getHolidaySummary()` | `none` | `Object` | Get high-level summary of today, next holiday, and next Poya |
@@ -156,29 +157,43 @@ main();
 
 ## 🌐 2. Public REST API Endpoints
 
-### API v3 (Stable Release)
+### API v3 (v3.2.1 Stable)
 
 Base URL: `https://holiday.imrishmika.dev`
 
 | Method | Endpoint | Description |
 |:---|:---|:---|
-| `GET` | `/api/v3/holidays` | Search, filter (year, month, type, category, public, bank), paginate (`?page=1&limit=50`) |
-| `GET` | `/api/v3/holidays/today` | Check if today is a public holiday in Sri Lanka timezone + next holiday |
-| `GET` | `/api/v3/holidays/upcoming` | Get next N upcoming holidays from today (`?limit=5&publicOnly=true`) |
-| `GET` | `/api/v3/holidays/poya` | Official Sri Lanka Full Moon Poya days & next Poya calculator |
-| `GET` | `/api/v3/holidays/search` | Full-text keyword search across titles and descriptions (`?q=poya`) |
+| `GET` | `/api/v3/date/range` | **Date Intelligence**: Analysis returning `totalDays`, `weekends`, `holidays`, `businessDays` (`?from=2026-08-01&to=2026-08-31`) |
+| `GET` | `/api/v3/holidays` | Search, filter (`year`, `month`, `type`, `category`, `public`, `bank`, `lang`, `timezone`), paginate (`?page=1&limit=50`) |
+| `GET` | `/api/v3/holidays/today` | Check today status in timezone (`?timezone=Asia/Colombo&lang=si`) |
+| `GET` | `/api/v3/holidays/upcoming` | Get next N upcoming holidays from today (`?limit=5&publicOnly=true&lang=ta`) |
+| `GET` | `/api/v3/holidays/poya` | Official Sri Lanka Full Moon Poya days & next Poya calculator (`?lang=si`) |
+| `GET` | `/api/v3/holidays/search` | Full-text keyword search across titles and descriptions (`?q=poya&lang=ta`) |
 | `GET` | `/api/v3/holidays/working-days` | Validate single working day (`?date=2026-04-15`) or calculate range (`?start=...&end=...`) |
-| `GET` | `/api/v3/holidays/range` | Get holidays falling within custom date range (`?start=2026-04-01&end=2026-04-30`) |
+| `GET` | `/api/v3/holidays/range` | Custom date range query (`?from=2026-08-01&to=2026-08-31`) |
 | `GET` | `/api/v3/holidays/stats` | Analytics, year coverage breakdown, and dataset telemetry |
 | `GET` | `/api/v3/status` | 100% real-time Live System Status telemetry (active users, uptime, request count) |
 | `GET` | `/api/v3/health` | Comprehensive system health check & diagnostics |
 
 ---
 
-## 💡 Quick cURL Example
+## 🌍 Localization & Timezone Querying
+
+All endpoints accept:
+- `?lang=en` | `?lang=si` (සිංහල) | `?lang=ta` (தமிழ்)
+- `?locale=en-LK` | `?locale=si-LK` | `?locale=ta-LK`
+- `?timezone=Asia/Colombo` | `?timezone=UTC` | `?timezone=America/New_York`
+
+---
+
+## 💡 Quick cURL Examples
 
 ```bash
-curl "https://holiday.imrishmika.dev/api/v3/holidays/upcoming?limit=3"
+# 1. Date Intelligence Range Analysis
+curl "https://holiday.imrishmika.dev/api/v3/date/range?from=2026-08-01&to=2026-08-31"
+
+# 2. Sinhala Localized Today Status
+curl "https://holiday.imrishmika.dev/api/v3/holidays/today?lang=si&timezone=Asia/Colombo"
 ```
 
 ---
