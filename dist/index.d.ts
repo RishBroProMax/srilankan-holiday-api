@@ -1,3 +1,5 @@
+import { localizeHoliday, normalizeLang } from './localization';
+export { localizeHoliday, normalizeLang };
 export interface Holiday {
     id: string;
     name: string;
@@ -11,6 +13,8 @@ export interface Holiday {
     isPublicHoliday: boolean;
     isBankHoliday: boolean;
     description: string;
+    lang?: string;
+    categoryNameLocalized?: string;
 }
 export interface FilterOptions {
     year?: number | string;
@@ -21,6 +25,9 @@ export interface FilterOptions {
     bankOnly?: boolean;
     religion?: string;
     query?: string;
+    lang?: string;
+    locale?: string;
+    timezone?: string;
 }
 export interface ClientOptions {
     baseUrl?: string;
@@ -40,17 +47,21 @@ export declare const SUPPORTED_YEARS: any[];
  */
 export declare function getAllHolidays(filters?: FilterOptions): Holiday[];
 /**
+ * Helper to get a localized version of a single holiday object
+ */
+export declare function getLocalizedHoliday(holiday: Holiday, langOrLocale?: string): Holiday;
+/**
  * Get all holidays for a specific year
  */
-export declare function getHolidaysByYear(year: number | string): Holiday[];
+export declare function getHolidaysByYear(year: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get all holidays for a specific month in a given year
  */
-export declare function getHolidaysByMonth(year: number | string, month: number | string): Holiday[];
+export declare function getHolidaysByMonth(year: number | string, month: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get holidays on a specific date (YYYY-MM-DD)
  */
-export declare function getHolidayByDate(dateStr: string): Holiday[];
+export declare function getHolidayByDate(dateStr: string, langOrLocale?: string): Holiday[];
 /**
  * Check if a given date string (YYYY-MM-DD) is any holiday
  */
@@ -77,6 +88,24 @@ export declare function isWorkingDay(dateStr: string): boolean;
  */
 export declare function getHolidaysInRange(startDateStr: string, endDateStr: string, filters?: FilterOptions): Holiday[];
 /**
+ * Date Intelligence Range Analysis
+ * Returns comprehensive day count metrics (totalDays, weekends, holidays, businessDays, workingDaysList, holidaysList)
+ * Ideal for HR leave calculations, payroll, invoice delivery estimates & SaaS apps.
+ */
+export declare function analyzeDateRange(fromStr: string, toStr: string, options?: {
+    lang?: string;
+    locale?: string;
+}): {
+    from: string;
+    to: string;
+    totalDays: number;
+    weekends: number;
+    holidays: number;
+    businessDays: number;
+    workingDaysList: string[];
+    holidaysList: Holiday[];
+};
+/**
  * Count total business working days between two dates (inclusive)
  * (Excludes Saturdays, Sundays, and Sri Lankan Public Holidays)
  */
@@ -88,46 +117,48 @@ export declare function getLongWeekends(year?: number | string): LongWeekend[];
 /**
  * Get all Buddhist holidays / Poya days for a year
  */
-export declare function getBuddhistHolidays(year?: number | string): Holiday[];
+export declare function getBuddhistHolidays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get all Hindu holidays / festivals for a year
  */
-export declare function getHinduHolidays(year?: number | string): Holiday[];
+export declare function getHinduHolidays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get all Islamic holidays for a year
  */
-export declare function getIslamicHolidays(year?: number | string): Holiday[];
+export declare function getIslamicHolidays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get all Christian holidays for a year
  */
-export declare function getChristianHolidays(year?: number | string): Holiday[];
+export declare function getChristianHolidays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get all National holidays for a year
  */
-export declare function getNationalHolidays(year?: number | string): Holiday[];
+export declare function getNationalHolidays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get today's holiday(s) in Sri Lanka
  */
-export declare function getTodayHoliday(): Holiday[];
+export declare function getTodayHoliday(langOrLocale?: string): Holiday[];
 /**
  * Get upcoming holidays from today in Sri Lanka
  */
 export declare function getUpcomingHolidays(options?: {
     limit?: number;
     publicOnly?: boolean;
+    lang?: string;
+    locale?: string;
 }): Holiday[];
 /**
  * Get the immediate next upcoming holiday
  */
-export declare function getUpcomingHoliday(publicOnly?: boolean): Holiday | null;
+export declare function getUpcomingHoliday(publicOnly?: boolean, langOrLocale?: string): Holiday | null;
 /**
  * Get all Full Moon Poya days for a specific year (or all years if omitted)
  */
-export declare function getPoyaDays(year?: number | string): Holiday[];
+export declare function getPoyaDays(year?: number | string, langOrLocale?: string): Holiday[];
 /**
  * Get the immediate next Poya day with daysUntil count
  */
-export declare function getNextPoyaDay(): (Holiday & {
+export declare function getNextPoyaDay(langOrLocale?: string): (Holiday & {
     daysUntil: number;
 }) | null;
 /**
@@ -137,19 +168,19 @@ export declare function getDaysUntil(dateStr: string): number;
 /**
  * Lookup a specific holiday by exact ID string
  */
-export declare function getHolidayById(id: string): Holiday | null;
+export declare function getHolidayById(id: string, langOrLocale?: string): Holiday | null;
 /**
  * Get holidays by tradition type (buddhist, hindu, islamic, christian, national)
  */
-export declare function getHolidaysByType(type: string): Holiday[];
+export declare function getHolidaysByType(type: string, langOrLocale?: string): Holiday[];
 /**
  * Get holidays by religion
  */
-export declare function getHolidaysByReligion(religion: string): Holiday[];
+export declare function getHolidaysByReligion(religion: string, langOrLocale?: string): Holiday[];
 /**
  * Search holidays by keyword
  */
-export declare function searchHolidays(query: string): Holiday[];
+export declare function searchHolidays(query: string, langOrLocale?: string): Holiday[];
 /**
  * Get metadata about the holiday dataset
  */
@@ -192,7 +223,7 @@ export declare function getWorkableDaysInRange(startDateStr: string, endDateStr:
 /**
  * Get a quick high-level summary of today's holiday, next upcoming holiday, and next Poya day
  */
-export declare function getHolidaySummary(): {
+export declare function getHolidaySummary(langOrLocale?: string): {
     today: Holiday[];
     isTodayHoliday: boolean;
     nextHoliday: Holiday | null;
@@ -223,15 +254,31 @@ export declare class SriLankanHolidayAPI {
     /**
      * Get today's holiday from live v3 REST API (or fallback to offline dataset)
      */
-    getToday(): Promise<Holiday[]>;
+    getToday(options?: {
+        lang?: string;
+        locale?: string;
+        timezone?: string;
+    }): Promise<Holiday[]>;
     /**
-     * Get upcoming holidays from live v3 REST API (or fallback to offline dataset)
+     * Date Intelligence Analysis via live v3 REST API
      */
-    getUpcoming(limit?: number): Promise<Holiday[]>;
+    analyzeDateRange(from: string, to: string, options?: {
+        lang?: string;
+        locale?: string;
+        timezone?: string;
+    }): Promise<any>;
     /**
-     * Search holidays using live v3 REST API (or fallback to offline dataset)
+     * Get upcoming holidays from live v3 REST API
      */
-    search(query: string): Promise<Holiday[]>;
+    getUpcoming(limit?: number, options?: {
+        lang?: string;
+        locale?: string;
+        timezone?: string;
+    }): Promise<Holiday[]>;
+    /**
+     * Search holidays using live v3 REST API
+     */
+    search(query: string, langOrLocale?: string): Promise<Holiday[]>;
     /**
      * Get live system status & telemetry metrics
      */
@@ -259,6 +306,8 @@ declare const _default: {
     getHolidaysInRange: typeof getHolidaysInRange;
     countWorkingDays: typeof countWorkingDays;
     getWorkableDaysInRange: typeof getWorkableDaysInRange;
+    analyzeDateRange: typeof analyzeDateRange;
+    getLocalizedHoliday: typeof getLocalizedHoliday;
     getLongWeekends: typeof getLongWeekends;
     getBuddhistHolidays: typeof getBuddhistHolidays;
     getHinduHolidays: typeof getHinduHolidays;

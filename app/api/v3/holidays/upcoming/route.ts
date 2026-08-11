@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import holidayData from '@/data/holidays.json';
-
-function getSriLankaTodayString(): string {
-  const now = new Date();
-  const sriLankaOffset = 5.5 * 60 * 60 * 1000;
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
-  const sriLankaTime = new Date(utcTime + sriLankaOffset);
-  return sriLankaTime.toISOString().split('T')[0];
-}
+import { localizeHoliday, normalizeLang, resolveTimezone, getTodayDateString } from '@/lib/localization';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const limitParam = parseInt(searchParams.get('limit') || '5', 10);
   const publicOnly = searchParams.get('public') === 'true' || searchParams.get('publicOnly') === 'true';
+  const langParam = searchParams.get('lang') || searchParams.get('locale');
+  const tzParam = searchParams.get('timezone');
 
-  const todayStr = getSriLankaTodayString();
+  const lang = normalizeLang(langParam || undefined);
+  const timezone = resolveTimezone(tzParam || undefined);
+  const todayStr = getTodayDateString(timezone);
+
   let candidates = (holidayData as any).holidays.filter((h: any) => h.date >= todayStr);
 
   if (publicOnly) {
@@ -29,15 +27,17 @@ export async function GET(request: NextRequest) {
     const targetDate = new Date(h.date + 'T00:00:00');
     const daysUntil = Math.ceil((targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
     return {
-      ...h,
+      ...localizeHoliday(h, lang),
       daysUntil
     };
   });
 
   return NextResponse.json({
     success: true,
-    apiVersion: '3.2.0',
-    currentSriLankaDate: todayStr,
+    apiVersion: '3.2.1',
+    currentDate: todayStr,
+    timezone,
+    lang,
     count: results.length,
     data: results
   }, {

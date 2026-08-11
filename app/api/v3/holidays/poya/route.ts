@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import holidayData from '@/data/holidays.json';
-
-function getSriLankaTodayString(): string {
-  const now = new Date();
-  const sriLankaOffset = 5.5 * 60 * 60 * 1000;
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
-  const sriLankaTime = new Date(utcTime + sriLankaOffset);
-  return sriLankaTime.toISOString().split('T')[0];
-}
+import { localizeHoliday, normalizeLang, getTodayDateString } from '@/lib/localization';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const yearParam = searchParams.get('year');
+  const langParam = searchParams.get('lang') || searchParams.get('locale');
 
-  const todayStr = getSriLankaTodayString();
+  const lang = normalizeLang(langParam || undefined);
+  const todayStr = getTodayDateString('Asia/Colombo');
+
   let poyaDays = (holidayData as any).holidays.filter((h: any) =>
     h.name.toLowerCase().includes('poya') || h.type === 'buddhist'
   );
@@ -34,18 +30,21 @@ export async function GET(request: NextRequest) {
     const targetDate = new Date(target.date + 'T00:00:00');
     const daysUntil = Math.ceil((targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
     nextPoya = {
-      ...target,
+      ...localizeHoliday(target, lang),
       daysUntil
     };
   }
 
+  const localizedData = poyaDays.map((h: any) => localizeHoliday(h, lang));
+
   return NextResponse.json({
     success: true,
-    apiVersion: '3.2.0',
+    apiVersion: '3.2.1',
+    lang,
     currentSriLankaDate: todayStr,
     totalPoyaDays: poyaDays.length,
     nextPoyaDay: nextPoya,
-    data: poyaDays
+    data: localizedData
   }, {
     status: 200,
     headers: {

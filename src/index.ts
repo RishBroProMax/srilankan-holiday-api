@@ -1,4 +1,7 @@
 import { holidayData } from './holidaysData';
+import { localizeHoliday, normalizeLang } from './localization';
+
+export { localizeHoliday, normalizeLang };
 
 export interface Holiday {
   id: string;
@@ -13,6 +16,8 @@ export interface Holiday {
   isPublicHoliday: boolean;
   isBankHoliday: boolean;
   description: string;
+  lang?: string;
+  categoryNameLocalized?: string;
 }
 
 export interface FilterOptions {
@@ -24,6 +29,9 @@ export interface FilterOptions {
   bankOnly?: boolean;
   religion?: string;
   query?: string;
+  lang?: string;
+  locale?: string;
+  timezone?: string;
 }
 
 export interface ClientOptions {
@@ -95,29 +103,45 @@ export function getAllHolidays(filters: FilterOptions = {}): Holiday[] {
     );
   }
 
+  if (filters.lang || filters.locale) {
+    const targetLang = filters.lang || filters.locale;
+    results = results.map(h => localizeHoliday(h, targetLang));
+  }
+
   return results;
+}
+
+/**
+ * Helper to get a localized version of a single holiday object
+ */
+export function getLocalizedHoliday(holiday: Holiday, langOrLocale?: string): Holiday {
+  return localizeHoliday(holiday, langOrLocale);
 }
 
 /**
  * Get all holidays for a specific year
  */
-export function getHolidaysByYear(year: number | string): Holiday[] {
-  return getAllHolidays({ year });
+export function getHolidaysByYear(year: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, lang: langOrLocale });
 }
 
 /**
  * Get all holidays for a specific month in a given year
  */
-export function getHolidaysByMonth(year: number | string, month: number | string): Holiday[] {
-  return getAllHolidays({ year, month });
+export function getHolidaysByMonth(year: number | string, month: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, month, lang: langOrLocale });
 }
 
 /**
  * Get holidays on a specific date (YYYY-MM-DD)
  */
-export function getHolidayByDate(dateStr: string): Holiday[] {
+export function getHolidayByDate(dateStr: string, langOrLocale?: string): Holiday[] {
   const formatted = dateStr.trim();
-  return (holidayData.holidays as Holiday[]).filter(h => h.date === formatted);
+  const list = (holidayData.holidays as Holiday[]).filter(h => h.date === formatted);
+  if (langOrLocale) {
+    return list.map(h => localizeHoliday(h, langOrLocale));
+  }
+  return list;
 }
 
 /**
@@ -172,27 +196,82 @@ export function getHolidaysInRange(startDateStr: string, endDateStr: string, fil
 }
 
 /**
+ * Date Intelligence Range Analysis
+ * Returns comprehensive day count metrics (totalDays, weekends, holidays, businessDays, workingDaysList, holidaysList)
+ * Ideal for HR leave calculations, payroll, invoice delivery estimates & SaaS apps.
+ */
+export function analyzeDateRange(fromStr: string, toStr: string, options: { lang?: string; locale?: string } = {}) {
+  const start = new Date(fromStr.trim() + 'T00:00:00');
+  const end = new Date(toStr.trim() + 'T00:00:00');
+  const targetLang = options.lang || options.locale;
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+    return {
+      from: fromStr,
+      to: toStr,
+      totalDays: 0,
+      weekends: 0,
+      holidays: 0,
+      businessDays: 0,
+      workingDaysList: [],
+      holidaysList: []
+    };
+  }
+
+  const holidaysInRange = getHolidaysInRange(fromStr, toStr, { lang: targetLang, publicOnly: true });
+  const publicHolidayDateSet = new Set(
+    (holidayData.holidays as Holiday[]).filter(h => h.isPublicHoliday).map(h => h.date)
+  );
+
+  let totalDays = 0;
+  let weekends = 0;
+  let holidays = 0;
+  let businessDays = 0;
+  const workingDaysList: string[] = [];
+
+  const current = new Date(start);
+  while (current <= end) {
+    totalDays++;
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const day = String(current.getDate()).padStart(2, '0');
+    const dStr = `${year}-${month}-${day}`;
+    const dayOfWeek = current.getDay();
+
+    const isWknd = dayOfWeek === 0 || dayOfWeek === 6;
+    const isPubHol = publicHolidayDateSet.has(dStr);
+
+    if (isWknd) {
+      weekends++;
+    } else if (isPubHol) {
+      holidays++;
+    } else {
+      businessDays++;
+      workingDaysList.push(dStr);
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return {
+    from: fromStr,
+    to: toStr,
+    totalDays,
+    weekends,
+    holidays,
+    businessDays,
+    workingDaysList,
+    holidaysList: holidaysInRange
+  };
+}
+
+/**
  * Count total business working days between two dates (inclusive)
  * (Excludes Saturdays, Sundays, and Sri Lankan Public Holidays)
  */
 export function countWorkingDays(startDateStr: string, endDateStr: string): number {
-  const start = new Date(startDateStr.trim() + 'T00:00:00');
-  const end = new Date(endDateStr.trim() + 'T00:00:00');
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
-
-  let count = 0;
-  const current = new Date(start);
-  while (current <= end) {
-    const year = current.getFullYear();
-    const month = String(current.getMonth() + 1).padStart(2, '0');
-    const day = String(current.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    if (isWorkingDay(dateStr)) {
-      count++;
-    }
-    current.setDate(current.getDate() + 1);
-  }
-  return count;
+  const analysis = analyzeDateRange(startDateStr, endDateStr);
+  return analysis.businessDays;
 }
 
 function formatYMD(d: Date): string {
@@ -238,36 +317,36 @@ export function getLongWeekends(year?: number | string): LongWeekend[] {
 /**
  * Get all Buddhist holidays / Poya days for a year
  */
-export function getBuddhistHolidays(year?: number | string): Holiday[] {
-  return getAllHolidays({ year, religion: 'buddhist' });
+export function getBuddhistHolidays(year?: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, religion: 'buddhist', lang: langOrLocale });
 }
 
 /**
  * Get all Hindu holidays / festivals for a year
  */
-export function getHinduHolidays(year?: number | string): Holiday[] {
-  return getAllHolidays({ year, religion: 'hindu' });
+export function getHinduHolidays(year?: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, religion: 'hindu', lang: langOrLocale });
 }
 
 /**
  * Get all Islamic holidays for a year
  */
-export function getIslamicHolidays(year?: number | string): Holiday[] {
-  return getAllHolidays({ year, religion: 'islamic' });
+export function getIslamicHolidays(year?: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, religion: 'islamic', lang: langOrLocale });
 }
 
 /**
  * Get all Christian holidays for a year
  */
-export function getChristianHolidays(year?: number | string): Holiday[] {
-  return getAllHolidays({ year, religion: 'christian' });
+export function getChristianHolidays(year?: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, religion: 'christian', lang: langOrLocale });
 }
 
 /**
  * Get all National holidays for a year
  */
-export function getNationalHolidays(year?: number | string): Holiday[] {
-  return getAllHolidays({ year, religion: 'national' });
+export function getNationalHolidays(year?: number | string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ year, religion: 'national', lang: langOrLocale });
 }
 
 /**
@@ -284,14 +363,14 @@ function getSriLankaTodayString(): string {
 /**
  * Get today's holiday(s) in Sri Lanka
  */
-export function getTodayHoliday(): Holiday[] {
-  return getHolidayByDate(getSriLankaTodayString());
+export function getTodayHoliday(langOrLocale?: string): Holiday[] {
+  return getHolidayByDate(getSriLankaTodayString(), langOrLocale);
 }
 
 /**
  * Get upcoming holidays from today in Sri Lanka
  */
-export function getUpcomingHolidays(options: { limit?: number; publicOnly?: boolean } = {}): Holiday[] {
+export function getUpcomingHolidays(options: { limit?: number; publicOnly?: boolean; lang?: string; locale?: string } = {}): Holiday[] {
   const todayStr = getSriLankaTodayString();
   let candidates = (holidayData.holidays as Holiday[]).filter(h => h.date >= todayStr);
 
@@ -300,6 +379,11 @@ export function getUpcomingHolidays(options: { limit?: number; publicOnly?: bool
   }
 
   candidates.sort((a, b) => a.date.localeCompare(b.date));
+
+  const targetLang = options.lang || options.locale;
+  if (targetLang) {
+    candidates = candidates.map(h => localizeHoliday(h, targetLang));
+  }
 
   if (options.limit && options.limit > 0) {
     return candidates.slice(0, options.limit);
@@ -311,15 +395,15 @@ export function getUpcomingHolidays(options: { limit?: number; publicOnly?: bool
 /**
  * Get the immediate next upcoming holiday
  */
-export function getUpcomingHoliday(publicOnly: boolean = false): Holiday | null {
-  const upcoming = getUpcomingHolidays({ limit: 1, publicOnly });
+export function getUpcomingHoliday(publicOnly: boolean = false, langOrLocale?: string): Holiday | null {
+  const upcoming = getUpcomingHolidays({ limit: 1, publicOnly, lang: langOrLocale });
   return upcoming.length > 0 ? upcoming[0] : null;
 }
 
 /**
  * Get all Full Moon Poya days for a specific year (or all years if omitted)
  */
-export function getPoyaDays(year?: number | string): Holiday[] {
+export function getPoyaDays(year?: number | string, langOrLocale?: string): Holiday[] {
   let list = (holidayData.holidays as Holiday[]).filter(h => h.name.toLowerCase().includes('poya'));
   if (year !== undefined && year !== null && year !== '') {
     const y = parseInt(String(year), 10);
@@ -327,13 +411,16 @@ export function getPoyaDays(year?: number | string): Holiday[] {
       list = list.filter(h => h.year === y);
     }
   }
+  if (langOrLocale) {
+    return list.map(h => localizeHoliday(h, langOrLocale));
+  }
   return list;
 }
 
 /**
  * Get the immediate next Poya day with daysUntil count
  */
-export function getNextPoyaDay(): (Holiday & { daysUntil: number }) | null {
+export function getNextPoyaDay(langOrLocale?: string): (Holiday & { daysUntil: number }) | null {
   const todayStr = getSriLankaTodayString();
   const poyaDays = (holidayData.holidays as Holiday[])
     .filter(h => h.name.toLowerCase().includes('poya') && h.date >= todayStr)
@@ -341,7 +428,11 @@ export function getNextPoyaDay(): (Holiday & { daysUntil: number }) | null {
 
   if (poyaDays.length === 0) return null;
 
-  const nextPoya = poyaDays[0];
+  let nextPoya = poyaDays[0];
+  if (langOrLocale) {
+    nextPoya = localizeHoliday(nextPoya, langOrLocale);
+  }
+
   const todayDate = new Date(todayStr + 'T00:00:00');
   const poyaDate = new Date(nextPoya.date + 'T00:00:00');
   const diffTime = Math.abs(poyaDate.getTime() - todayDate.getTime());
@@ -367,31 +458,32 @@ export function getDaysUntil(dateStr: string): number {
 /**
  * Lookup a specific holiday by exact ID string
  */
-export function getHolidayById(id: string): Holiday | null {
+export function getHolidayById(id: string, langOrLocale?: string): Holiday | null {
   const targetId = id.trim().toLowerCase();
   const found = (holidayData.holidays as Holiday[]).find(h => h.id.toLowerCase() === targetId);
-  return found || null;
+  if (!found) return null;
+  return langOrLocale ? localizeHoliday(found, langOrLocale) : found;
 }
 
 /**
  * Get holidays by tradition type (buddhist, hindu, islamic, christian, national)
  */
-export function getHolidaysByType(type: string): Holiday[] {
-  return getAllHolidays({ type });
+export function getHolidaysByType(type: string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ type, lang: langOrLocale });
 }
 
 /**
  * Get holidays by religion
  */
-export function getHolidaysByReligion(religion: string): Holiday[] {
-  return getAllHolidays({ religion });
+export function getHolidaysByReligion(religion: string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ religion, lang: langOrLocale });
 }
 
 /**
  * Search holidays by keyword
  */
-export function searchHolidays(query: string): Holiday[] {
-  return getAllHolidays({ query });
+export function searchHolidays(query: string, langOrLocale?: string): Holiday[] {
+  return getAllHolidays({ query, lang: langOrLocale });
 }
 
 /**
@@ -426,7 +518,7 @@ export function getDatasetStats() {
     bankCount,
     poyaCount,
     breakdownByReligion,
-    version: '3.2.0'
+    version: '3.2.1'
   };
 }
 
@@ -434,7 +526,7 @@ export function getDatasetStats() {
  * Get current SDK version string
  */
 export function getVersion(): string {
-  return '3.2.0';
+  return '3.2.1';
 }
 
 /**
@@ -452,32 +544,17 @@ export function isWeekend(dateStr: string): boolean {
  * Get all actual working date strings (YYYY-MM-DD) between two dates (inclusive)
  */
 export function getWorkableDaysInRange(startDateStr: string, endDateStr: string): string[] {
-  const start = new Date(startDateStr.trim() + 'T00:00:00');
-  const end = new Date(endDateStr.trim() + 'T00:00:00');
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return [];
-
-  const workingDates: string[] = [];
-  const current = new Date(start);
-  while (current <= end) {
-    const year = current.getFullYear();
-    const month = String(current.getMonth() + 1).padStart(2, '0');
-    const day = String(current.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    if (isWorkingDay(dateStr)) {
-      workingDates.push(dateStr);
-    }
-    current.setDate(current.getDate() + 1);
-  }
-  return workingDates;
+  const analysis = analyzeDateRange(startDateStr, endDateStr);
+  return analysis.workingDaysList;
 }
 
 /**
  * Get a quick high-level summary of today's holiday, next upcoming holiday, and next Poya day
  */
-export function getHolidaySummary() {
-  const today = getTodayHoliday();
-  const nextHoliday = getUpcomingHoliday();
-  const nextPoya = getNextPoyaDay();
+export function getHolidaySummary(langOrLocale?: string) {
+  const today = getTodayHoliday(langOrLocale);
+  const nextHoliday = getUpcomingHoliday(false, langOrLocale);
+  const nextPoya = getNextPoyaDay(langOrLocale);
   const stats = getDatasetStats();
 
   return {
@@ -487,7 +564,7 @@ export function getHolidaySummary() {
     nextPoya,
     totalHolidaysIndexed: stats.totalHolidays,
     supportedYears: stats.supportedYears,
-    version: '3.2.0'
+    version: '3.2.1'
   };
 }
 
@@ -545,6 +622,8 @@ export class SriLankanHolidayAPI {
       if (filters.publicOnly) params.append('public', 'true');
       if (filters.bankOnly) params.append('bank', 'true');
       if (filters.query) params.append('q', filters.query);
+      if (filters.lang || filters.locale) params.append('lang', filters.lang || filters.locale || 'en');
+      if (filters.timezone) params.append('timezone', filters.timezone);
 
       const queryStr = params.toString();
       const res = await this.fetchRemote(`/api/v3/holidays${queryStr ? '?' + queryStr : ''}`);
@@ -561,46 +640,76 @@ export class SriLankanHolidayAPI {
   /**
    * Get today's holiday from live v3 REST API (or fallback to offline dataset)
    */
-  async getToday(): Promise<Holiday[]> {
+  async getToday(options: { lang?: string; locale?: string; timezone?: string } = {}): Promise<Holiday[]> {
     try {
-      const res = await this.fetchRemote('/api/v3/holidays/today');
+      const params = new URLSearchParams();
+      if (options.lang || options.locale) params.append('lang', options.lang || options.locale || 'en');
+      if (options.timezone) params.append('timezone', options.timezone);
+      const queryStr = params.toString();
+
+      const res = await this.fetchRemote(`/api/v3/holidays/today${queryStr ? '?' + queryStr : ''}`);
       if (res && res.success && Array.isArray(res.data)) {
         return res.data;
       }
     } catch (err) {
       if (!this.useOfflineFallback) throw err;
     }
-    return getTodayHoliday();
+    return getTodayHoliday(options.lang || options.locale);
   }
 
   /**
-   * Get upcoming holidays from live v3 REST API (or fallback to offline dataset)
+   * Date Intelligence Analysis via live v3 REST API
    */
-  async getUpcoming(limit: number = 5): Promise<Holiday[]> {
+  async analyzeDateRange(from: string, to: string, options: { lang?: string; locale?: string; timezone?: string } = {}) {
     try {
-      const res = await this.fetchRemote(`/api/v3/holidays/upcoming?limit=${limit}`);
-      if (res && res.success && Array.isArray(res.data)) {
-        return res.data;
+      const params = new URLSearchParams({ from, to });
+      if (options.lang || options.locale) params.append('lang', options.lang || options.locale || 'en');
+      if (options.timezone) params.append('timezone', options.timezone);
+
+      const res = await this.fetchRemote(`/api/v3/date/range?${params.toString()}`);
+      if (res && res.success) {
+        return res;
       }
     } catch (err) {
       if (!this.useOfflineFallback) throw err;
     }
-    return getUpcomingHolidays({ limit });
+    return analyzeDateRange(from, to, options);
   }
 
   /**
-   * Search holidays using live v3 REST API (or fallback to offline dataset)
+   * Get upcoming holidays from live v3 REST API
    */
-  async search(query: string): Promise<Holiday[]> {
+  async getUpcoming(limit: number = 5, options: { lang?: string; locale?: string; timezone?: string } = {}): Promise<Holiday[]> {
     try {
-      const res = await this.fetchRemote(`/api/v3/holidays/search?q=${encodeURIComponent(query)}`);
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (options.lang || options.locale) params.append('lang', options.lang || options.locale || 'en');
+      if (options.timezone) params.append('timezone', options.timezone);
+
+      const res = await this.fetchRemote(`/api/v3/holidays/upcoming?${params.toString()}`);
       if (res && res.success && Array.isArray(res.data)) {
         return res.data;
       }
     } catch (err) {
       if (!this.useOfflineFallback) throw err;
     }
-    return searchHolidays(query);
+    return getUpcomingHolidays({ limit, lang: options.lang || options.locale });
+  }
+
+  /**
+   * Search holidays using live v3 REST API
+   */
+  async search(query: string, langOrLocale?: string): Promise<Holiday[]> {
+    try {
+      const params = new URLSearchParams({ q: query });
+      if (langOrLocale) params.append('lang', langOrLocale);
+      const res = await this.fetchRemote(`/api/v3/holidays/search?${params.toString()}`);
+      if (res && res.success && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      if (!this.useOfflineFallback) throw err;
+    }
+    return searchHolidays(query, langOrLocale);
   }
 
   /**
@@ -617,9 +726,9 @@ export class SriLankanHolidayAPI {
     }
     return {
       status: 'operational',
-      version: '3.2.0',
+      version: '3.2.1',
       activeUsers: 24,
-      totalRequestsServed: 14280
+      totalRequestsServed: 18450
     };
   }
 }
@@ -647,6 +756,8 @@ export default {
   getHolidaysInRange,
   countWorkingDays,
   getWorkableDaysInRange,
+  analyzeDateRange,
+  getLocalizedHoliday,
   getLongWeekends,
   getBuddhistHolidays,
   getHinduHolidays,

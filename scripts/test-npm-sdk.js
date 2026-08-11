@@ -22,6 +22,22 @@ console.log('7. April 2026 Working Days Count:', workingDaysApril);
 const workableDates = api.getWorkableDaysInRange('2026-04-01', '2026-04-07');
 console.log('7b. Workable Dates (April 1-7):', workableDates);
 
+// Test 2b: Date Intelligence Range Analysis (v3.2.1)
+const rangeAnalysis = api.analyzeDateRange('2026-08-01', '2026-08-31');
+console.log('7c. Date Range Analysis (Aug 2026):', {
+  totalDays: rangeAnalysis.totalDays,
+  weekends: rangeAnalysis.weekends,
+  holidays: rangeAnalysis.holidays,
+  businessDays: rangeAnalysis.businessDays
+});
+
+// Test 2c: Multi-language Localization (v3.2.1)
+const sinhalaHoliday = api.getUpcomingHoliday(false, 'si');
+console.log('7d. Upcoming Holiday in Sinhala:', sinhalaHoliday?.name, '(', sinhalaHoliday?.dayOfWeek, ')');
+
+const tamilHoliday = api.getUpcomingHoliday(false, 'ta');
+console.log('7e. Upcoming Holiday in Tamil:', tamilHoliday?.name, '(', tamilHoliday?.dayOfWeek, ')');
+
 // Test 3: Long Weekends
 const longWeekends2026 = api.getLongWeekends(2026);
 console.log('8. 2026 Long Weekends Count:', longWeekends2026.length);
@@ -39,7 +55,7 @@ console.log('12. Days until 2026-12-25 (Christmas):', api.getDaysUntil('2026-12-
 console.log('13. Lookup by ID (2026-01-03-duruthu-full-moon-poya-day):', api.getHolidayById('2026-01-03-duruthu-full-moon-poya-day')?.name);
 
 // Test 6: Summary & Dataset Stats
-console.log('14. Holiday Summary:', api.getHolidaySummary());
+console.log('14. Holiday Summary:', api.getHolidaySummary('si'));
 console.log('15. Dataset Stats:', api.getDatasetStats());
 
-console.log('✅ ALL V3.2.0 SDK METHODS TESTED AND WORKING PERFECTLY!');
+console.log('✅ ALL V3.2.1 SDK METHODS TESTED AND WORKING PERFECTLY!');

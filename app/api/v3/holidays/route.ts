@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import holidayData from '@/data/holidays.json';
+import { localizeHoliday, normalizeLang, resolveTimezone } from '@/lib/localization';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -12,8 +13,13 @@ export async function GET(request: NextRequest) {
   const publicOnly = searchParams.get('public') === 'true' || searchParams.get('publicOnly') === 'true';
   const bankOnly = searchParams.get('bank') === 'true' || searchParams.get('bankOnly') === 'true';
   const queryParam = searchParams.get('q') || searchParams.get('query');
+  const langParam = searchParams.get('lang') || searchParams.get('locale');
+  const tzParam = searchParams.get('timezone');
   const pageParam = parseInt(searchParams.get('page') || '1', 10);
   const limitParam = parseInt(searchParams.get('limit') || '500', 10);
+
+  const lang = normalizeLang(langParam || undefined);
+  const timezone = resolveTimezone(tzParam || undefined);
 
   let results = [...(holidayData as any).holidays];
 
@@ -65,11 +71,15 @@ export async function GET(request: NextRequest) {
   const limit = Math.max(1, Math.min(limitParam, 500));
   const totalPages = Math.ceil(totalCount / limit);
   const startIndex = (page - 1) * limit;
-  const paginatedData = results.slice(startIndex, startIndex + limit);
+  const paginatedData = results
+    .slice(startIndex, startIndex + limit)
+    .map(h => localizeHoliday(h, lang));
 
   return NextResponse.json({
     success: true,
-    apiVersion: '3.2.0',
+    apiVersion: '3.2.1',
+    lang,
+    timezone,
     pagination: {
       totalCount,
       page,
