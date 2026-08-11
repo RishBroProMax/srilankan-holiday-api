@@ -10,7 +10,7 @@ export async function GET() {
     status: 'healthy',
     statusCode: 200,
     timestamp: new Date().toISOString(),
-    version: '3.2.0',
+    version: '3.2.1',
     service: 'Sri Lankan Holiday API',
     uptime: {
       seconds: telemetry.uptimeSeconds,

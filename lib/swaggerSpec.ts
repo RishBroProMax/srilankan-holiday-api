@@ -1,8 +1,8 @@
 export const swaggerSpec = {
   openapi: '3.0.0',
   info: {
-    title: '🇱🇰 Sri Lankan Holiday API (v3.2.0 Stable)',
-    version: '3.2.0',
+    title: '🇱🇰 Sri Lankan Holiday API (v3.2.1 Stable)',
+    version: '3.2.1',
     description: `
 A free, open-source REST API providing comprehensive Sri Lankan public, bank, and Poya holiday data for **2024–2045** (22 calendar years).
 
@@ -10,13 +10,11 @@ A free, open-source REST API providing comprehensive Sri Lankan public, bank, an
 - **Node.js SDK Module**: [https://holiday.imrishmika.dev/npm-module](https://holiday.imrishmika.dev/npm-module)
 - **GitHub Repository**: [https://github.com/RishBroProMax/holiday-api](https://github.com/RishBroProMax/holiday-api)
 
-## 🌟 Features (v3.2.0 Stable)
-- **858+ cataloged holidays** across 22 years (2024-2045)
-- **Full Moon Poya Days**: Astronomically calculated using Jean Meeus algorithms calibrated for Asia/Colombo (UTC+5:30)
-- **Multi-religious coverage**: Buddhist, Hindu, Islamic, Christian & National observances
-- **Working Days Calculator**: Calculate actual working days excluding weekends & public holidays
-- **Live System Status**: 100% real-time telemetry metrics, server uptime, and rate limiting status
-- **Zero-Dependency SDK**: Available via \`npm install sri-lankan-holiday-api\`
+## 🌟 New Features in v3.2.1
+- 🌍 **Multi-Language Localization**: Full Sinhala (\`si\` / \`si-LK\`), Tamil (\`ta\` / \`ta-LK\`), and English (\`en\` / \`en-LK\`) translations for holiday names, descriptions, day of week names, and categories.
+- 🕒 **Timezone Support**: Custom timezone querying via \`?timezone=...\` (e.g. \`Asia/Colombo\`, \`UTC\`, \`America/New_York\`).
+- 🧠 **Date Intelligence Range Analysis**: \`GET /api/v3/date/range?from=2026-08-01&to=2026-08-31\` returning \`totalDays\`, \`weekends\`, \`holidays\`, and \`businessDays\` for HR, payroll, invoicing & SaaS apps.
+- **Zero-Dependency SDK**: Available via \`npm install sri-lankan-holiday-api\`.
 
 ## 🏷️ Holiday Types
 | Type | Description |
@@ -28,8 +26,10 @@ A free, open-source REST API providing comprehensive Sri Lankan public, bank, an
 | \`national\` | Independence Day, May Day, Sinhala & Tamil New Year |
 | \`international\` | World Environment Day, Human Rights Day, etc. |
 
-## 🕐 Timezone
-All date calculations use **Asia/Colombo (UTC+5:30)** timezone.
+## 🌐 Supported Languages & Locales
+- \`en\` / \`en-LK\`: English (Default)
+- \`si\` / \`si-LK\`: Sinhala (සිංහල)
+- \`ta\` / \`ta-LK\`: Tamil (தமிழ்)
     `,
     contact: {
       name: 'RishBroProMax',
@@ -54,107 +54,97 @@ All date calculations use **Asia/Colombo (UTC+5:30)** timezone.
     '/api/v3': {
       get: {
         summary: 'v3 API Base Overview',
-        description: 'Returns API metadata, version 3.2.0, available endpoints, and telemetry info.',
+        description: 'Returns API metadata, version 3.2.1, available endpoints, and telemetry index.',
         responses: { '200': { description: 'v3 API base overview' } }
+      }
+    },
+    '/api/v3/date/range': {
+      get: {
+        summary: 'Date Intelligence Range Analysis (v3.2.1)',
+        description: 'Returns total days, weekends, holidays count, business days count, and working date lists between `from` and `to` dates for HR, payroll & delivery estimates.',
+        parameters: [
+          { in: 'query', name: 'from', required: true, schema: { type: 'string' }, example: '2026-08-01', description: 'Start date YYYY-MM-DD' },
+          { in: 'query', name: 'to', required: true, schema: { type: 'string' }, example: '2026-08-31', description: 'End date YYYY-MM-DD' },
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'si', description: 'Language code (en, si, ta)' },
+          { in: 'query', name: 'timezone', schema: { type: 'string' }, example: 'Asia/Colombo', description: 'Target IANA timezone' }
+        ],
+        responses: { '200': { description: 'Date Intelligence breakdown' } }
       }
     },
     '/api/v3/holidays': {
       get: {
-        summary: 'Get all holidays (v3 Stable)',
-        description: 'Retrieve Sri Lankan holidays with advanced query parameters for filtering and pagination.',
+        summary: 'Get all holidays (v3.2.1)',
+        description: 'Retrieve Sri Lankan holidays with multi-language localization, timezone support, and filtering.',
         parameters: [
           { in: 'query', name: 'year', schema: { type: 'integer' }, description: 'Filter by year (2024-2045)' },
           { in: 'query', name: 'month', schema: { type: 'integer' }, description: 'Filter by month (1-12)' },
           { in: 'query', name: 'day', schema: { type: 'integer' }, description: 'Filter by day of month (1-31)' },
           { in: 'query', name: 'type', schema: { type: 'string' }, description: 'Filter by tradition type (buddhist, hindu, islamic, christian, national)' },
           { in: 'query', name: 'category', schema: { type: 'string' }, description: 'Filter by category (public_and_bank, public, bank)' },
-          { in: 'query', name: 'public', schema: { type: 'boolean' }, description: 'Filter for public holidays' },
-          { in: 'query', name: 'bank', schema: { type: 'boolean' }, description: 'Filter for bank holidays' },
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'si', description: 'Language / Locale (en, si, ta, si-LK, ta-LK)' },
+          { in: 'query', name: 'timezone', schema: { type: 'string' }, example: 'Asia/Colombo' },
           { in: 'query', name: 'q', schema: { type: 'string' }, description: 'Search keyword' },
           { in: 'query', name: 'page', schema: { type: 'integer' }, description: 'Pagination page number' },
           { in: 'query', name: 'limit', schema: { type: 'integer' }, description: 'Pagination page size limit' }
         ],
-        responses: { '200': { description: 'Paginated list of holidays' } }
+        responses: { '200': { description: 'Paginated list of localized holidays' } }
       }
     },
     '/api/v3/holidays/today': {
       get: {
-        summary: 'Check today status (v3 Stable)',
-        description: 'Returns today holiday status in Asia/Colombo timezone and next upcoming holiday.',
+        summary: 'Check today status (v3.2.1)',
+        description: 'Returns today holiday status in requested timezone and language.',
+        parameters: [
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'ta' },
+          { in: 'query', name: 'timezone', schema: { type: 'string' }, example: 'Asia/Colombo' }
+        ],
         responses: { '200': { description: 'Today holiday status' } }
       }
     },
     '/api/v3/holidays/upcoming': {
       get: {
-        summary: 'Get upcoming holidays (v3 Stable)',
+        summary: 'Get upcoming holidays (v3.2.1)',
         description: 'Returns upcoming holidays from today with calculated daysUntil countdown.',
         parameters: [
           { in: 'query', name: 'limit', schema: { type: 'integer' }, description: 'Number of upcoming holidays to return (default 5)' },
-          { in: 'query', name: 'publicOnly', schema: { type: 'boolean' }, description: 'Filter only public holidays' }
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'si' },
+          { in: 'query', name: 'timezone', schema: { type: 'string' }, example: 'Asia/Colombo' }
         ],
         responses: { '200': { description: 'List of upcoming holidays' } }
       }
     },
     '/api/v3/holidays/poya': {
       get: {
-        summary: 'Get Full Moon Poya Days (v3 Stable)',
-        description: 'Returns all Poya days for Sri Lanka with next Poya countdown.',
+        summary: 'Get Full Moon Poya Days (v3.2.1)',
+        description: 'Returns all Poya days for Sri Lanka with next Poya countdown in selected language.',
         parameters: [
-          { in: 'query', name: 'year', schema: { type: 'integer' }, description: 'Filter Poya days by year' }
+          { in: 'query', name: 'year', schema: { type: 'integer' }, description: 'Filter Poya days by year' },
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'si' }
         ],
         responses: { '200': { description: 'Poya days listing' } }
       }
     },
     '/api/v3/holidays/search': {
       get: {
-        summary: 'Search holidays (v3 Stable)',
+        summary: 'Search holidays (v3.2.1)',
         description: 'Full-text keyword search across holiday titles, descriptions, and traditions.',
         parameters: [
-          { in: 'query', name: 'q', required: true, schema: { type: 'string' }, description: 'Search term' }
+          { in: 'query', name: 'q', required: true, schema: { type: 'string' }, description: 'Search term' },
+          { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'ta' }
         ],
         responses: { '200': { description: 'Search results' } }
       }
     },
-    '/api/v3/holidays/working-days': {
-      get: {
-        summary: 'Working Days Validator & Counter (v3 Stable)',
-        description: 'Check if a specific date is a business working day or count working days in a date range.',
-        parameters: [
-          { in: 'query', name: 'date', schema: { type: 'string' }, description: 'Single date YYYY-MM-DD to validate' },
-          { in: 'query', name: 'startDate', schema: { type: 'string' }, description: 'Start date YYYY-MM-DD for date range' },
-          { in: 'query', name: 'endDate', schema: { type: 'string' }, description: 'End date YYYY-MM-DD for date range' }
-        ],
-        responses: { '200': { description: 'Working days calculation result' } }
-      }
-    },
-    '/api/v3/holidays/range': {
-      get: {
-        summary: 'Get holidays in date range (v3 Stable)',
-        description: 'Retrieve holidays falling between startDate and endDate.',
-        parameters: [
-          { in: 'query', name: 'startDate', required: true, schema: { type: 'string' }, description: 'Start date YYYY-MM-DD' },
-          { in: 'query', name: 'endDate', required: true, schema: { type: 'string' }, description: 'End date YYYY-MM-DD' }
-        ],
-        responses: { '200': { description: 'Date range holidays' } }
-      }
-    },
-    '/api/v3/holidays/stats': {
-      get: {
-        summary: 'Get dataset analytics & telemetry (v3 Stable)',
-        description: 'Returns holiday counts by religion, year coverage, public/bank/poya breakdown, and live telemetry.',
-        responses: { '200': { description: 'Analytical breakdown stats' } }
-      }
-    },
     '/api/v3/status': {
       get: {
-        summary: 'Live System Status Telemetry (v3 Stable)',
+        summary: 'Live System Status Telemetry (v3.2.1)',
         description: 'Returns 100% real-time system metrics, active connected users, total requests served, uptime, and memory status.',
         responses: { '200': { description: 'Live system status metrics' } }
       }
     },
     '/api/v3/health': {
       get: {
-        summary: 'System Health Diagnostics (v3 Stable)',
+        summary: 'System Health Diagnostics (v3.2.1)',
         description: 'Comprehensive health check for monitoring edge runtime, rate limiters, and dataset integrity.',
         responses: { '200': { description: 'System health check' } }
       }

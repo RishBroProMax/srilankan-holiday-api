@@ -8,7 +8,7 @@ export async function GET() {
 
   return NextResponse.json({
     success: true,
-    apiVersion: '3.2.0',
+    apiVersion: '3.2.1',
     service: 'Sri Lankan Holiday API & SDK',
     status: '100% Operational',
     timestamp: new Date().toISOString(),

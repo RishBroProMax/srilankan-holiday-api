@@ -8,11 +8,13 @@ export async function GET() {
 
   return NextResponse.json({
     success: true,
-    name: 'Sri Lankan Holiday API (v3.2.0 Stable)',
-    version: '3.2.0',
+    name: 'Sri Lankan Holiday API (v3.2.1 Stable)',
+    version: '3.2.1',
     status: 'operational',
     license: 'MIT',
-    timezone: 'Asia/Colombo (UTC+5:30)',
+    timezone: 'Asia/Colombo (UTC+5:30) (Custom Timezone Supported)',
+    supportedLanguages: ['en', 'si', 'ta'],
+    supportedLocales: ['en-LK', 'si-LK', 'ta-LK'],
     documentation: 'https://holiday.imrishmika.dev/docs',
     npmModule: 'https://holiday.imrishmika.dev/npm-module',
     datasetInfo: {
@@ -21,8 +23,9 @@ export async function GET() {
       religionsCovered: ['buddhist', 'hindu', 'islamic', 'christian', 'national']
     },
     endpoints: {
-      holidays: '/api/v3/holidays',
-      today: '/api/v3/holidays/today',
+      dateRangeIntelligence: '/api/v3/date/range?from=2026-08-01&to=2026-08-31',
+      holidays: '/api/v3/holidays?lang=si',
+      today: '/api/v3/holidays/today?timezone=Asia/Colombo',
       upcoming: '/api/v3/holidays/upcoming',
       poya: '/api/v3/holidays/poya',
       search: '/api/v3/holidays/search',

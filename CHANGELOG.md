@@ -4,6 +4,27 @@ All notable changes to the `sri-lankan-holiday-api` package and REST API will be
 
 ---
 
+## 🌍 [v3.2.1] — 2026-08-11 (Localization & Date Intelligence)
+
+### 🌟 Node Module SDK (v3.2.1)
+- **Multi-Language Localization**:
+  - Added Sinhala (`si` / `si-LK`) and Tamil (`ta` / `ta-LK`) translations for holiday names, descriptions, day of week names (`Monday` -> `සඳුදා` / `திங்கள்`), and categories.
+  - Added `getLocalizedHoliday(holiday, lang)` helper function.
+- **Date Intelligence Range Analysis**:
+  - Added `analyzeDateRange(from, to, options)` returning `{ totalDays, weekends, holidays, businessDays, workingDaysList, holidaysList }` for HR leave management, payroll, invoice delivery estimates, and SaaS apps.
+- **Timezone Support**:
+  - Support `timezone` parameter in SDK calls and `SriLankanHolidayAPI` queries (`?timezone=Asia/Colombo`, `?timezone=UTC`, `?timezone=America/New_York`).
+
+### 🌐 REST API (/v3)
+- **New Endpoints**:
+  - `GET /api/v3/date/range?from=2026-08-01&to=2026-08-31` returning exact Date Intelligence analysis: `{"totalDays": 31, "weekends": 10, "holidays": 1, "businessDays": 20}`.
+- **Query Parameters**:
+  - `?lang=en` | `?lang=si` | `?lang=ta`
+  - `?locale=en-LK` | `?locale=si-LK` | `?locale=ta-LK`
+  - `?timezone=Asia/Colombo`
+
+---
+
 ## 🚀 [v3.2.0] — 2026-08-11 (Stable Release)
 
 ### 🌟 Node Module SDK (v3.2.0)

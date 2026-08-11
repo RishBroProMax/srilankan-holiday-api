@@ -36,11 +36,37 @@ interface ReleaseNote {
 
 const changelogData: ReleaseNote[] = [
   {
-    version: 'v3.2.0 (Stable Release & Node SDK Upgrade)',
-    tag: 'v3.2.0',
+    version: 'v3.2.1 (Localization & Date Intelligence)',
+    tag: 'v3.2.1',
     date: 'August 11, 2026',
     badge: 'Latest',
     badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    summary: 'Major feature release introducing multi-language localization (Sinhala & Tamil), custom timezone queries, and Date Intelligence range analysis (GET /api/v3/date/range) for HR leave management, payroll, and invoice delivery estimates.',
+    changes: [
+      {
+        category: 'Features',
+        items: [
+          'Multi-Language Localization: Full Sinhala (si / si-LK), Tamil (ta / ta-LK), and English (en / en-LK) support for holiday names, descriptions, day of week names, and categories.',
+          'Date Intelligence Range Analysis: New endpoint GET /api/v3/date/range?from=2026-08-01&to=2026-08-31 returning totalDays, weekends, holidays, and businessDays.',
+          'Timezone Support: Query API and SDK in custom IANA timezones via ?timezone=... (e.g., Asia/Colombo, UTC, America/New_York).',
+          'Node SDK v3.2.1: Exported analyzeDateRange(), getLocalizedHoliday(), and updated SriLankanHolidayAPI client methods.'
+        ]
+      },
+      {
+        category: 'Documentation',
+        items: [
+          'Updated Swagger OpenAPI 3.0 specs with GET /api/v3/date/range and localization parameter schemas.',
+          'Updated README.md and root CHANGELOG.md.'
+        ]
+      }
+    ]
+  },
+  {
+    version: 'v3.2.0 (Stable Release & Node SDK Upgrade)',
+    tag: 'v3.2.0',
+    date: 'August 11, 2026',
+    badge: 'Stable',
+    badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
     summary: 'Stabilized release of the /api/v3 REST API and v3.2.0 Node.js SDK (sri-lankan-holiday-api) on NPM featuring 100% real-time Live System Status telemetry, advanced working days calculator, weekend helpers, AI SEO (AEO/GEO) optimizations, and expanded OpenAPI 3.0 specs.',
     changes: [
       {
