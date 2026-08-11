@@ -121,6 +121,7 @@ main();
 
 | Method | Parameters | Return Type | Description |
 |:---|:---|:---|:---|
+| `getVersion()` | `none` | `string` | Get current SDK version string ("3.2.0") |
 | `getAllHolidays(filters?)` | `FilterOptions` | `Holiday[]` | Query holidays by year, month, type, religion, category |
 | `getHolidaysByYear(year)` | `number \| string` | `Holiday[]` | Get all holidays for a specific calendar year |
 | `getHolidaysByMonth(year, month)` | `year, month` | `Holiday[]` | Get holidays for a specific month (1–12) |
@@ -133,9 +134,12 @@ main();
 | `isPublicHoliday(dateStr)` | `string ("YYYY-MM-DD")` | `boolean` | Returns true if target date is a public holiday |
 | `isBankHoliday(dateStr)` | `string ("YYYY-MM-DD")` | `boolean` | Returns true if target date is a bank holiday |
 | `isWorkingDay(dateStr)` | `string ("YYYY-MM-DD")` | `boolean` | Returns true if date is a business day (excl. weekends & public holidays) |
+| `isWeekend(dateStr)` | `string ("YYYY-MM-DD")` | `boolean` | Returns true if date is Saturday or Sunday |
 | `countWorkingDays(start, end)` | `startDate, endDate` | `number` | Count business working days between two dates |
+| `getWorkableDaysInRange(start, end)`| `startDate, endDate` | `string[]` | Get array of working date strings (YYYY-MM-DD) |
 | `getHolidaysInRange(start, end)` | `startDate, endDate` | `Holiday[]` | Get holidays falling within a date range |
 | `getLongWeekends(year?)` | `number \| string` | `LongWeekend[]` | Detect long weekend holiday opportunities |
+| `getHolidaySummary()` | `none` | `Object` | Get high-level summary of today, next holiday, and next Poya |
 | `getBuddhistHolidays(year?)` | `number \| string` | `Holiday[]` | Filter Buddhist & Poya holidays |
 | `getHinduHolidays(year?)` | `number \| string` | `Holiday[]` | Filter Hindu festivals |
 | `getIslamicHolidays(year?)` | `number \| string` | `Holiday[]` | Filter Islamic lunar observances |
@@ -152,35 +156,29 @@ main();
 
 ## 🌐 2. Public REST API Endpoints
 
-### API v2 (Recommended)
+### API v3 (Stable Release)
 
 Base URL: `https://holiday.imrishmika.dev`
 
 | Method | Endpoint | Description |
 |:---|:---|:---|
-| `GET` | `/api/v2/holidays` | Search (`?search=poya`), sort (`?sort=date_asc`), paginate (`?page=1&limit=50`), filter |
-| `GET` | `/api/v2/holidays/upcoming` | Get next N upcoming holidays from today (`?limit=5`) |
-| `GET` | `/api/v2/holidays/search` | Full-text keyword search (`?q=poya`) |
-| `GET` | `/api/v2/holidays/poya` | Official Sri Lanka Full Moon Poya days |
-| `GET` | `/api/v2/holidays/next-poya` | Next Poya day with live countdown |
-| `GET` | `/api/v2/holidays/stats` | Analytics & dataset telemetry |
-
-### API v1 (Legacy Stable)
-
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| `GET` | `/api/v1/holidays` | List holidays (`year`, `month`, `type`, `category`, `public`, `bank`) |
-| `GET` | `/api/v1/holidays/today` | Check if today is a public holiday in Sri Lanka |
-| `GET` | `/api/v1/holidays/upcoming` | Get next upcoming holiday from today |
-| `GET` | `/api/v1/holidays/export` | Download full dataset in `json` or `csv` format |
-| `GET` | `/api/v1/health` | Health & system diagnostics |
+| `GET` | `/api/v3/holidays` | Search, filter (year, month, type, category, public, bank), paginate (`?page=1&limit=50`) |
+| `GET` | `/api/v3/holidays/today` | Check if today is a public holiday in Sri Lanka timezone + next holiday |
+| `GET` | `/api/v3/holidays/upcoming` | Get next N upcoming holidays from today (`?limit=5&publicOnly=true`) |
+| `GET` | `/api/v3/holidays/poya` | Official Sri Lanka Full Moon Poya days & next Poya calculator |
+| `GET` | `/api/v3/holidays/search` | Full-text keyword search across titles and descriptions (`?q=poya`) |
+| `GET` | `/api/v3/holidays/working-days` | Validate single working day (`?date=2026-04-15`) or calculate range (`?start=...&end=...`) |
+| `GET` | `/api/v3/holidays/range` | Get holidays falling within custom date range (`?start=2026-04-01&end=2026-04-30`) |
+| `GET` | `/api/v3/holidays/stats` | Analytics, year coverage breakdown, and dataset telemetry |
+| `GET` | `/api/v3/status` | 100% real-time Live System Status telemetry (active users, uptime, request count) |
+| `GET` | `/api/v3/health` | Comprehensive system health check & diagnostics |
 
 ---
 
 ## 💡 Quick cURL Example
 
 ```bash
-curl "https://holiday.imrishmika.dev/api/v2/holidays/upcoming?limit=3"
+curl "https://holiday.imrishmika.dev/api/v3/holidays/upcoming?limit=3"
 ```
 
 ---

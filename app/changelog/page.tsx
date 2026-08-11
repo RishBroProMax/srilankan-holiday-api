@@ -36,11 +36,44 @@ interface ReleaseNote {
 
 const changelogData: ReleaseNote[] = [
   {
+    version: 'v3.2.0 (Stable Release & Node SDK Upgrade)',
+    tag: 'v3.2.0',
+    date: 'August 11, 2026',
+    badge: 'Latest',
+    badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    summary: 'Stabilized release of the /api/v3 REST API and v3.2.0 Node.js SDK (sri-lankan-holiday-api) on NPM featuring 100% real-time Live System Status telemetry, advanced working days calculator, weekend helpers, AI SEO (AEO/GEO) optimizations, and expanded OpenAPI 3.0 specs.',
+    changes: [
+      {
+        category: 'Features',
+        items: [
+          'Stabilized REST API /v3 endpoints (/api/v3, /api/v3/holidays, /api/v3/holidays/today, /api/v3/holidays/upcoming, /api/v3/holidays/poya, /api/v3/holidays/search, /api/v3/holidays/working-days, /api/v3/holidays/range, /api/v3/holidays/stats, /api/v3/status, /api/v3/health).',
+          'Upgraded Node.js SDK (sri-lankan-holiday-api) to v3.2.0 with new functions: getVersion(), isWeekend(), getWorkableDaysInRange(), getHolidaySummary(), and filterHolidays().',
+          '100% Dynamic Live System Status widget with real-time active user session tracking, server uptime, request counters, and memory diagnostics.',
+          'Enhanced SriLankanHolidayAPI client class to automatically target /api/v3 endpoints with offline dataset fallbacks.'
+        ]
+      },
+      {
+        category: 'Security',
+        items: [
+          'Full AI search bot crawling permissions in robots.txt for GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, anthropic-ai, Google-Extended, and Bingbot.',
+          'Comprehensive JSON-LD structured schema markup (SoftwareApplication v3.2.0, Dataset, FAQPage, BreadcrumbList, Organization).'
+        ]
+      },
+      {
+        category: 'Documentation',
+        items: [
+          'Updated Swagger OpenAPI 3.0 documentation playground with all /api/v3 paths and response models.',
+          'Updated NPM Module documentation page at /npm-module with v3.2.0 code examples and interactive sandbox.'
+        ]
+      }
+    ]
+  },
+  {
     version: 'v3.0.0 (Official Node.js Module Launch)',
     tag: 'v3.0.0',
     date: 'August 04, 2026',
-    badge: 'Latest',
-    badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    badge: 'Stable',
+    badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
     summary: 'Official release of the zero-dependency, 100% offline-ready sri-lankan-holiday-api Node.js module on NPM with TypeScript typings, CJS/ESM dual builds, Vercel build pipeline integration, and dedicated /npm-module interactive documentation route.',
     changes: [
       {
