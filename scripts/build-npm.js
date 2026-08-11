@@ -52,6 +52,7 @@ const cjsContent = fs.readFileSync(path.join(distDir, 'index.js'), 'utf8');
 // Create ESM wrapper
 const esmContent = `import cjs from './index.js';
 export const {
+  getVersion,
   getAllHolidays,
   getHolidaysByYear,
   getHolidaysByMonth,
@@ -68,8 +69,10 @@ export const {
   isBankHoliday,
   isPoyaDay,
   isWorkingDay,
+  isWeekend,
   getHolidaysInRange,
   countWorkingDays,
+  getWorkableDaysInRange,
   getLongWeekends,
   getBuddhistHolidays,
   getHinduHolidays,
@@ -79,6 +82,8 @@ export const {
   getDaysUntil,
   getHolidayById,
   searchHolidays,
+  getHolidaySummary,
+  filterHolidays,
   getMetadata,
   getDatasetStats,
   SriLankanHolidayAPI,

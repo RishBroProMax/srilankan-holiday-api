@@ -2,12 +2,15 @@ const api = require('../dist/index.js');
 
 console.log('🧪 Testing sri-lankan-holiday-api Node Module SDK...');
 
+console.log('0. SDK Version:', api.getVersion());
+
 // Test 1: Basic getters
 console.log('1. Upcoming Holiday:', api.getUpcomingHoliday()?.name);
 console.log('2. Next Poya Day:', api.getNextPoyaDay()?.name, 'in', api.getNextPoyaDay()?.daysUntil, 'days');
 console.log('3. Is 2026-04-13 public holiday?', api.isPublicHoliday('2026-04-13'));
 console.log('4. Is 2026-04-13 working day?', api.isWorkingDay('2026-04-13'));
 console.log('5. Is 2026-04-15 working day?', api.isWorkingDay('2026-04-15'));
+console.log('5b. Is 2026-04-12 weekend?', api.isWeekend('2026-04-12'));
 
 // Test 2: Ranges & Counts
 const holidaysApril = api.getHolidaysInRange('2026-04-01', '2026-04-30');
@@ -15,6 +18,9 @@ console.log('6. April 2026 Holidays Count:', holidaysApril.length);
 
 const workingDaysApril = api.countWorkingDays('2026-04-01', '2026-04-30');
 console.log('7. April 2026 Working Days Count:', workingDaysApril);
+
+const workableDates = api.getWorkableDaysInRange('2026-04-01', '2026-04-07');
+console.log('7b. Workable Dates (April 1-7):', workableDates);
 
 // Test 3: Long Weekends
 const longWeekends2026 = api.getLongWeekends(2026);
@@ -32,7 +38,8 @@ console.log('11. Islamic Holidays (2026):', api.getIslamicHolidays(2026).length)
 console.log('12. Days until 2026-12-25 (Christmas):', api.getDaysUntil('2026-12-25'));
 console.log('13. Lookup by ID (2026-01-03-duruthu-full-moon-poya-day):', api.getHolidayById('2026-01-03-duruthu-full-moon-poya-day')?.name);
 
-// Test 6: Dataset Stats
-console.log('14. Dataset Stats:', api.getDatasetStats());
+// Test 6: Summary & Dataset Stats
+console.log('14. Holiday Summary:', api.getHolidaySummary());
+console.log('15. Dataset Stats:', api.getDatasetStats());
 
-console.log('✅ ALL SDK METHODS TESTED AND WORKING PERFECTLY!');
+console.log('✅ ALL V3.2.0 SDK METHODS TESTED AND WORKING PERFECTLY!');

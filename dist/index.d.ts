@@ -178,7 +178,37 @@ export declare function getDatasetStats(): {
     version: string;
 };
 /**
- * Async API Client to optionally query live REST API with automatic offline fallback
+ * Get current SDK version string
+ */
+export declare function getVersion(): string;
+/**
+ * Check if a date string (YYYY-MM-DD) falls on a weekend (Saturday or Sunday)
+ */
+export declare function isWeekend(dateStr: string): boolean;
+/**
+ * Get all actual working date strings (YYYY-MM-DD) between two dates (inclusive)
+ */
+export declare function getWorkableDaysInRange(startDateStr: string, endDateStr: string): string[];
+/**
+ * Get a quick high-level summary of today's holiday, next upcoming holiday, and next Poya day
+ */
+export declare function getHolidaySummary(): {
+    today: Holiday[];
+    isTodayHoliday: boolean;
+    nextHoliday: Holiday | null;
+    nextPoya: (Holiday & {
+        daysUntil: number;
+    }) | null;
+    totalHolidaysIndexed: number;
+    supportedYears: any[];
+    version: string;
+};
+/**
+ * Filter holidays (alias for getAllHolidays with advanced FilterOptions)
+ */
+export declare function filterHolidays(filters?: FilterOptions): Holiday[];
+/**
+ * Async API Client to query live v3 REST API with automatic offline fallback
  */
 export declare class SriLankanHolidayAPI {
     private baseUrl;
@@ -187,23 +217,28 @@ export declare class SriLankanHolidayAPI {
     constructor(options?: ClientOptions);
     private fetchRemote;
     /**
-     * Get all holidays from live REST API (or fallback to offline dataset)
+     * Get all holidays from live v3 REST API (or fallback to offline dataset)
      */
     getAllHolidays(filters?: FilterOptions): Promise<Holiday[]>;
     /**
-     * Get today's holiday from live REST API (or fallback to offline dataset)
+     * Get today's holiday from live v3 REST API (or fallback to offline dataset)
      */
     getToday(): Promise<Holiday[]>;
     /**
-     * Get upcoming holidays from live REST API (or fallback to offline dataset)
+     * Get upcoming holidays from live v3 REST API (or fallback to offline dataset)
      */
     getUpcoming(limit?: number): Promise<Holiday[]>;
     /**
-     * Search holidays using live REST API (or fallback to offline dataset)
+     * Search holidays using live v3 REST API (or fallback to offline dataset)
      */
     search(query: string): Promise<Holiday[]>;
+    /**
+     * Get live system status & telemetry metrics
+     */
+    getStatus(): Promise<any>;
 }
 declare const _default: {
+    getVersion: typeof getVersion;
     getAllHolidays: typeof getAllHolidays;
     getHolidaysByYear: typeof getHolidaysByYear;
     getHolidaysByMonth: typeof getHolidaysByMonth;
@@ -220,8 +255,10 @@ declare const _default: {
     isBankHoliday: typeof isBankHoliday;
     isPoyaDay: typeof isPoyaDay;
     isWorkingDay: typeof isWorkingDay;
+    isWeekend: typeof isWeekend;
     getHolidaysInRange: typeof getHolidaysInRange;
     countWorkingDays: typeof countWorkingDays;
+    getWorkableDaysInRange: typeof getWorkableDaysInRange;
     getLongWeekends: typeof getLongWeekends;
     getBuddhistHolidays: typeof getBuddhistHolidays;
     getHinduHolidays: typeof getHinduHolidays;
@@ -231,6 +268,8 @@ declare const _default: {
     getDaysUntil: typeof getDaysUntil;
     getHolidayById: typeof getHolidayById;
     searchHolidays: typeof searchHolidays;
+    getHolidaySummary: typeof getHolidaySummary;
+    filterHolidays: typeof filterHolidays;
     getMetadata: typeof getMetadata;
     getDatasetStats: typeof getDatasetStats;
     SriLankanHolidayAPI: typeof SriLankanHolidayAPI;
