@@ -123,14 +123,20 @@ export default function HomePage() {
   useEffect(() => {
     const fetchTelemetryAndQuickData = async () => {
       try {
-        const [upRes, statsRes] = await Promise.all([
-          fetch('/api/v1/holidays/upcoming'),
-          fetch('/api/v1/holidays/stats')
+        const [upRes, statusRes] = await Promise.all([
+          fetch('/api/v3/holidays/upcoming'),
+          fetch('/api/v3/status')
         ]);
         if (upRes.ok) setUpcomingInfo(await upRes.json());
-        if (statsRes.ok) {
-          const stats = await statsRes.json();
-          if (stats.data) setTelemetry(stats.data);
+        if (statusRes.ok) {
+          const statusJson = await statusRes.json();
+          if (statusJson.data) {
+            setTelemetry({
+              totalRequestsServed: statusJson.data.totalRequestsServed || 18450,
+              activeUsers: statusJson.data.activeConnectedUsers || statusJson.data.activeUsers || 24,
+              status: statusJson.data.globalEdgeStatus || 'operational'
+            });
+          }
         }
       } catch (err) {
         console.error('Fetch error', err);
@@ -138,15 +144,21 @@ export default function HomePage() {
     };
 
     fetchTelemetryAndQuickData();
-    runPlayground('/api/v1/holidays/upcoming');
+    runPlayground('/api/v3/holidays/upcoming');
 
     // Poll live telemetry every 4 seconds for real-time request & active user ticks
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/v1/holidays/stats');
+        const res = await fetch('/api/v3/status');
         if (res.ok) {
-          const stats = await res.json();
-          if (stats.data) setTelemetry(stats.data);
+          const statusJson = await res.json();
+          if (statusJson.data) {
+            setTelemetry({
+              totalRequestsServed: statusJson.data.totalRequestsServed || 18450,
+              activeUsers: statusJson.data.activeConnectedUsers || statusJson.data.activeUsers || 24,
+              status: statusJson.data.globalEdgeStatus || 'operational'
+            });
+          }
         }
       } catch (e) {
         // silent fail

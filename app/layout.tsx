@@ -131,12 +131,12 @@ const jsonLd = {
     {
       '@type': 'SoftwareApplication',
       '@id': 'https://holiday.imrishmika.dev/#software',
-      'name': 'Sri Lankan Holiday API',
+      'name': 'Sri Lankan Holiday API & Node SDK',
       'applicationCategory': 'DeveloperApplication',
-      'softwareVersion': '2.5.0',
+      'softwareVersion': '3.2.0',
       'operatingSystem': 'All',
       'url': 'https://holiday.imrishmika.dev',
-      'downloadUrl': 'https://holiday.imrishmika.dev/api/v1/holidays/export',
+      'downloadUrl': 'https://www.npmjs.com/package/sri-lankan-holiday-api',
       'author': {
         '@type': 'Person',
         'name': 'RishBroProMax',
@@ -165,12 +165,7 @@ const jsonLd = {
         {
           '@type': 'DataDownload',
           'encodingFormat': 'application/json',
-          'contentUrl': 'https://holiday.imrishmika.dev/api/v1/holidays/export?format=json'
-        },
-        {
-          '@type': 'DataDownload',
-          'encodingFormat': 'text/csv',
-          'contentUrl': 'https://holiday.imrishmika.dev/api/v1/holidays/export?format=csv'
+          'contentUrl': 'https://holiday.imrishmika.dev/api/v3/holidays?limit=500'
         }
       ]
     },
@@ -187,20 +182,20 @@ const jsonLd = {
         {
           '@type': 'ListItem',
           'position': 2,
-          'name': 'API Overview',
-          'item': 'https://holiday.imrishmika.dev/api'
+          'name': 'NPM SDK Module',
+          'item': 'https://holiday.imrishmika.dev/npm-module'
         },
         {
           '@type': 'ListItem',
           'position': 3,
-          'name': 'Swagger Documentation',
+          'name': 'Swagger v3 API Docs',
           'item': 'https://holiday.imrishmika.dev/docs'
         },
         {
           '@type': 'ListItem',
           'position': 4,
-          'name': 'Dataset Export',
-          'item': 'https://holiday.imrishmika.dev/api/v1/holidays/export'
+          'name': 'v3.2.0 REST API Root',
+          'item': 'https://holiday.imrishmika.dev/api/v3'
         }
       ]
     },
@@ -210,10 +205,18 @@ const jsonLd = {
       'mainEntity': [
         {
           '@type': 'Question',
-          'name': 'Is the Sri Lankan Holiday API free to use?',
+          'name': 'Is the Sri Lankan Holiday API & Node Module free to use?',
           'acceptedAnswer': {
             '@type': 'Answer',
-            'text': 'Yes, the Sri Lankan Holiday API is 100% free and open-source under the MIT license with no API key required.'
+            'text': 'Yes, the Sri Lankan Holiday API & Node Module (sri-lankan-holiday-api) is 100% free and open-source under the MIT license with zero API keys required.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'How do I install the Sri Lankan Holiday SDK in Node.js or TypeScript?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Run `npm install sri-lankan-holiday-api` or `pnpm add sri-lankan-holiday-api`. It is a zero-dependency, 100% offline-ready TypeScript library.'
           }
         },
         {
@@ -234,18 +237,10 @@ const jsonLd = {
         },
         {
           '@type': 'Question',
-          'name': 'Can I download the Sri Lanka holiday dataset as CSV or JSON?',
+          'name': 'How do I query upcoming holidays or check if today is a holiday in v3.2.0 API?',
           'acceptedAnswer': {
             '@type': 'Answer',
-            'text': 'Yes, you can export the full dataset directly in JSON or CSV format from https://holiday.imrishmika.dev/api/v1/holidays/export.'
-          }
-        },
-        {
-          '@type': 'Question',
-          'name': 'How do I query upcoming holidays or check if today is a holiday?',
-          'acceptedAnswer': {
-            '@type': 'Answer',
-            'text': 'Use /api/v1/holidays/upcoming to get the next holiday with a countdown or /api/v1/holidays/today to check today status in Sri Lanka timezone.'
+            'text': 'Use /api/v3/holidays/upcoming to get the next holiday with a countdown or /api/v3/holidays/today to check today status in Sri Lanka timezone.'
           }
         }
       ]
